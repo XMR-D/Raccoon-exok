@@ -15,19 +15,23 @@ SECTIONS
     }
  
     /* Then let's place all the other traditional executable sections afterwards. */
-    .text : {
+    .text : AT(ADDR(.text) - 0xffffffff80200000)
+    {
         *(.text*)
     }
  
-    .rodata : {
+    .rodata : AT(ADDR(.rodata) - 0xffffffff80200000)
+    {
         *(.rodata*)
     }
  
-    .data : {
+    .data : AT(ADDR(.data) - 0xffffffff80200000)
+    {
         *(.data*)
     }
  
-    .bss : {
+    .bss : AT(ADDR(.bss) - 0xffffffff80200000)
+    {
         *(COMMON)
         *(.bss*)
     }
