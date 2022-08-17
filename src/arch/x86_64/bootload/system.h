@@ -70,9 +70,60 @@ typedef struct multibootinfo{
 
 }__attribute__((__packed__)) multibootinfo_t;
 
+typedef struct gdt_entry
+{
+    uint16_t llimit : 16;
+    uint16_t lbase : 16;
+    uint8_t mbase : 8;
 
+    //access byte
+    uint8_t A : 1;
+    uint8_t RW : 1;
+    uint8_t DC : 1;
+    uint8_t E : 1;
+    uint8_t S : 1;
+    uint8_t DPL : 2;
+    uint8_t P : 1;
 
+    uint8_t hlimit : 4;
 
+    //flag bits
+    uint8_t Reserved : 1;
+    uint8_t L : 1;
+    uint8_t DB : 1;
+    uint8_t G : 1;
+
+    uint8_t hbase : 8;
+}__attribute__((packed)) gdt_entry_t;
+
+typedef struct gdt_entry_64
+{
+    uint16_t llimit : 16;
+    uint16_t lbase : 16;
+    uint8_t mbase : 8;
+
+    //access byte
+    uint8_t A : 1;
+    uint8_t RW : 1;
+    uint8_t DC : 1;
+    uint8_t E : 1;
+    uint8_t S : 1;
+    uint8_t DPL : 2;
+    uint8_t P : 1;
+
+    uint8_t hlimit : 4;
+
+    //flag bits
+    uint8_t reservedf : 1;
+    uint8_t L : 1;
+    uint8_t DB : 1;
+    uint8_t G : 1;
+
+    uint8_t mbase2 : 8;
+    uint32_t hbase : 32;
+    uint32_t reserved : 32;
+
+}__attribute__((packed)) gdt_entry_64t;
 
 //main fncts
 extern void *memcpy(void *dest, const void *src, size_t count);
@@ -101,7 +152,9 @@ extern void init_video();
 
 //GDT structs and functions
 extern void gdt_set_gate(int num, uint16_t lowlimit, uint8_t highlimit, uint16_t lowbase, uint8_t middlebase, uint16_t highbase, uint8_t a, uint8_t rw, uint8_t dc, uint8_t e, uint8_t s, uint8_t dpl, uint8_t p, uint8_t g, uint8_t db, uint8_t l);
+
 extern void gdt_install();
+extern void set_64_gdt(void);
 
 //IDT structs and functions
 
@@ -160,6 +213,7 @@ extern uint32_t mmap_info(multibootinfo_t * minfo);
 //Portage functions
 
 extern grubinfo convert(multibootinfo_t * src);
+extern void Init_Paging(void);
 
 
 #endif

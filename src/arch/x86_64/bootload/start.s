@@ -1,5 +1,8 @@
 [BITS 32]
 
+%include "cpuid.s"
+%include "Paging.s"
+
 [section .multiboot]
 align 4
 
@@ -43,19 +46,34 @@ isr%1:
 global start
 start:
     mov esp, _sys_stack
-    jmp stublet
+    jmp entry_point
 
 
-; endless loop where we call main and other functions.
-stublet:
-    push bx
-    xchg bx, bx
-    extern convert
-    call convert
+
+entry_point:
     extern lmain
     call lmain
-    ;TODO : jmp to the main exok-kernel with the return value of lmain
-    jmp $
+
+    ;disable paging and check if cpuid and longmode are available
+    call Disable_Paging
+    call DetectCpuid
+    call DetectLongmode
+
+    ;create and init PML4T PDPT PDT PT and map the 2 first MIb into memory
+    extern Init_Paging
+    call Init_Paging
+
+    ;Setting up controls registers to pass into compatibility mode and reactivate paging
+    call Set_Paging
+
+    ;once the paging is enable and the kernel is into compatibility mode we just need to set the gdt into a 64bit one to pass to long mode
+    extern set_64_gdt
+    call set_64_gdt
+
+    ;load the new gdt and far jump to the first gdt offset kernel code segment
+    extern gp_64
+    lgdt[gp_64]
+    jmp 0x08:temp64bitcode
 
 
 global gdt_flush
@@ -71,6 +89,22 @@ gdt_flush:
     jmp 0x08:flush2    ; 0x08 offset in GDT to kernel code segment (CS)
 flush2:
     ret
+
+global gdt_flush_64
+extern gp_64
+gdt_flush_64:
+    lgdt[gp_64]
+    mov ax, 0x10       ; 0x10 offset in GDT to kernel data segment (DS)
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+    jmp 0x08:flush2_64    ; 0x08 offset in GDT to kernel code segment (CS)
+flush2_64:
+    ret
+
+
 
 global idt_load
 extern idtpointer
@@ -170,6 +204,14 @@ irq_handler:
     add esp, 8
     iret
 
+[BITS 64]
+
+temp64bitcode:
+    extern trampoline_test
+    call trampoline_test
+    jmp $
+
+[BITS 32]
 ; allocate 8kB for .bss section used to stored the stack
 [section .bss]
 align 4

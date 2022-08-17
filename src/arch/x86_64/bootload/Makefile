@@ -39,7 +39,7 @@ OBJ    := $(GASFILES:%.S=$(BUILD)/%.o)
 OBJ    += $(SFILES:%.s=$(BUILD)/%.o)
 OBJ    += $(CFILES:%.c=$(BUILD)/%.o)
 
-QEMU = qemu-system-i386
+QEMU = qemu-system-x86_64
 QEMU_PARAMS_NODEBUG = -no-reboot -vga std -D ./log.txt -d int,guest_errors -m 512M -boot d -M q35  -serial mon:stdio -m 1G -smp $(CORE_NUM) -cdrom
 QEMU_PARAMS_DEBUG = -S -gdb tcp::9000
 

@@ -77,7 +77,7 @@ struct stivale2_struct_tag_modules get_modules(multibootinfo_t * src)
 
 grubinfo convert(multibootinfo_t * src)
 {
-    sprintf("multiboot info struct addr : %x\n", src);
+    sprintf((unsigned char *) "multiboot info struct addr : %x\n", src);
     grubinfo dst;
     //dst.rsdp = get_rsdp(multibootinfo_t * src, struct grubinfo dst);
 
